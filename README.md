@@ -174,5 +174,5 @@ The repository intentionally stores tasks in memory rather than in a database. W
 ├── main.go                # Server startup
 ├── Dockerfile
 ├── Makefile
-└── notes.md
+└── README.md
 ```
