@@ -1,0 +1,200 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Task API",
+    "version": "2.0.0",
+    "description": "A small in-memory CRUD API built with Go's standard net/http package. Data resets whenever the server restarts."
+  },
+  "servers": [
+    {"url": "http://localhost:3000", "description": "Local development server"}
+  ],
+  "tags": [
+    {"name": "System", "description": "API metadata and health"},
+    {"name": "Tasks", "description": "Create, read, update and delete tasks"},
+    {"name": "Extras", "description": "Statistics and demo reset"}
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Describe the API",
+        "responses": {
+          "200": {
+            "description": "API metadata",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/APIMetadata"}}}
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Check whether the server is alive",
+        "responses": {
+          "200": {
+            "description": "Healthy server",
+            "content": {"application/json": {"schema": {"type": "object", "properties": {"status": {"type": "string", "example": "ok"}}}}}
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "List tasks",
+        "description": "Supports filtering, case-insensitive search and offset pagination. The total number of matching tasks is returned in the X-Total-Count response header.",
+        "parameters": [
+          {"name": "done", "in": "query", "schema": {"type": "boolean"}, "description": "Filter by completion state"},
+          {"name": "search", "in": "query", "schema": {"type": "string"}, "description": "Find titles containing this text"},
+          {"name": "limit", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 50}},
+          {"name": "offset", "in": "query", "schema": {"type": "integer", "minimum": 0, "default": 0}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Task list",
+            "headers": {
+              "X-Total-Count": {"schema": {"type": "integer"}, "description": "Number of matching tasks before pagination"},
+              "X-Limit": {"schema": {"type": "integer"}},
+              "X-Offset": {"schema": {"type": "integer"}}
+            },
+            "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Task"}}}}
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      },
+      "post": {
+        "tags": ["Tasks"],
+        "summary": "Create a task",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateTaskInput"}}}
+        },
+        "responses": {
+          "201": {
+            "description": "Task created",
+            "headers": {"Location": {"schema": {"type": "string"}, "example": "/tasks/4"}},
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Task"}}}
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"}
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "parameters": [
+        {"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}}
+      ],
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Get one task",
+        "responses": {
+          "200": {"description": "Task found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Task"}}}},
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "put": {
+        "tags": ["Tasks"],
+        "summary": "Update a task",
+        "description": "Provide title, done, or both. At least one field is required.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UpdateTaskInput"}}}
+        },
+        "responses": {
+          "200": {"description": "Task updated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Task"}}}},
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Tasks"],
+        "summary": "Delete a task",
+        "responses": {
+          "204": {"description": "Task deleted; response body is empty"},
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "tags": ["Extras"],
+        "summary": "Get task counts",
+        "responses": {
+          "200": {"description": "Current counts", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TaskStats"}}}}
+        }
+      }
+    },
+    "/reset": {
+      "post": {
+        "tags": ["Extras"],
+        "summary": "Restore the three seed tasks",
+        "responses": {
+          "200": {"description": "Reset task list", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Task"}}}}}
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "required": ["id", "title", "done"],
+        "properties": {
+          "id": {"type": "integer", "example": 4},
+          "title": {"type": "string", "minLength": 1, "maxLength": 200, "example": "Buy milk"},
+          "done": {"type": "boolean", "example": false}
+        }
+      },
+      "CreateTaskInput": {
+        "type": "object",
+        "required": ["title"],
+        "additionalProperties": false,
+        "properties": {
+          "title": {"type": "string", "minLength": 1, "maxLength": 200, "example": "Buy milk"}
+        }
+      },
+      "UpdateTaskInput": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "title": {"type": "string", "minLength": 1, "maxLength": 200, "example": "Buy oat milk"},
+          "done": {"type": "boolean", "example": true}
+        }
+      },
+      "TaskStats": {
+        "type": "object",
+        "required": ["total", "done", "open"],
+        "properties": {
+          "total": {"type": "integer", "example": 3},
+          "done": {"type": "integer", "example": 1},
+          "open": {"type": "integer", "example": 2}
+        }
+      },
+      "APIMetadata": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string", "example": "Task API"},
+          "version": {"type": "string", "example": "2.0.0"},
+          "endpoints": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {"error": {"type": "string", "example": "Task 99 not found"}}
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid path, query parameter or JSON body",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+      },
+      "NotFound": {
+        "description": "Task does not exist",
+        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+      }
+    }
+  }
+}

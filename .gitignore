@@ -1,0 +1,12 @@
+# Go build outputs
+bin/
+tiny-go-api
+*.test
+*.out
+coverage.*
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

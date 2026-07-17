@@ -1,35 +1,34 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
 )
 
-func sendJSON(w http.ResponseWriter, data map[string]string) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-}
-
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	app := NewApp(NewTaskStore(seedTasks), logger)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		sendJSON(w, map[string]string{
-			"message": "Tiny Go backend is running",
-		})
-	})
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           app.Routes(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
-	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		sendJSON(w, map[string]string{
-			"message": "Hello from Go net/http!",
-		})
-	})
+	logger.Info("server started", "url", "http://localhost:"+port, "docs", "http://localhost:"+port+"/docs")
 
-	log.Println("Server running at http://localhost:" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Error("server stopped", "error", err)
+		os.Exit(1)
+	}
 }
