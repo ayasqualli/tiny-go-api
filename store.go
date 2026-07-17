@@ -98,11 +98,18 @@ func (s *TaskStore) Update(id int, input UpdateTaskInput) (Task, bool) {
 		if s.tasks[i].ID != id {
 			continue
 		}
+
 		if input.Title != nil {
 			s.tasks[i].Title = *input.Title
 		}
+
+		if input.Done != nil {
+			s.tasks[i].Done = *input.Done
+		}
+
 		return s.tasks[i], true
 	}
+
 	return Task{}, false
 }
 
