@@ -42,19 +42,19 @@ Open:
 
 ## Endpoint reference
 
-| Method | Path | Purpose | Success |
-|---|---|---|---|
-| `GET` | `/` | Describe the API | `200` |
-| `GET` | `/health` | Check server health | `200` |
-| `GET` | `/tasks` | List, filter, search and paginate tasks | `200` |
-| `GET` | `/tasks/{id}` | Read one task | `200` |
-| `POST` | `/tasks` | Create a task | `201` |
-| `PUT` | `/tasks/{id}` | Update title and/or completion state | `200` |
-| `DELETE` | `/tasks/{id}` | Delete a task | `204` |
-| `GET` | `/stats` | Count total, done and open tasks | `200` |
-| `POST` | `/reset` | Restore the three seed tasks | `200` |
-| `GET` | `/docs` | Open Swagger UI | `200` |
-| `GET` | `/openapi.json` | Read the OpenAPI contract | `200` |
+| Method   | Path            | Purpose                                 | Success |
+| -------- | --------------- | --------------------------------------- | ------- |
+| `GET`    | `/`             | Describe the API                        | `200`   |
+| `GET`    | `/health`       | Check server health                     | `200`   |
+| `GET`    | `/tasks`        | List, filter, search and paginate tasks | `200`   |
+| `GET`    | `/tasks/{id}`   | Read one task                           | `200`   |
+| `POST`   | `/tasks`        | Create a task                           | `201`   |
+| `PUT`    | `/tasks/{id}`   | Update title and/or completion state    | `200`   |
+| `DELETE` | `/tasks/{id}`   | Delete a task                           | `204`   |
+| `GET`    | `/stats`        | Count total, done and open tasks        | `200`   |
+| `POST`   | `/reset`        | Restore the three seed tasks            | `200`   |
+| `GET`    | `/docs`         | Open Swagger UI                         | `200`   |
+| `GET`    | `/openapi.json` | Read the OpenAPI contract               | `200`   |
 
 ### List query parameters
 
@@ -62,12 +62,12 @@ Open:
 GET /tasks?done=false&search=api&limit=10&offset=0
 ```
 
-| Parameter | Meaning | Rules |
-|---|---|---|
-| `done` | Filter by completion state | `true` or `false` |
-| `search` | Case-insensitive title search | any text |
-| `limit` | Maximum returned tasks | `1`–`100`, default `50` |
-| `offset` | Number of matches to skip | `0` or greater |
+| Parameter | Meaning                       | Rules                   |
+| --------- | ----------------------------- | ----------------------- |
+| `done`    | Filter by completion state    | `true` or `false`       |
+| `search`  | Case-insensitive title search | any text                |
+| `limit`   | Maximum returned tasks        | `1`–`100`, default `50` |
+| `offset`  | Number of matches to skip     | `0` or greater          |
 
 The list response includes `X-Total-Count`, `X-Limit` and `X-Offset` headers.
 
@@ -116,13 +116,13 @@ Run the entire demonstration automatically:
 An empty or missing title returns `400 Bad Request`:
 
 ```json
-{"error":"title is required and cannot be empty"}
+{ "error": "title is required and cannot be empty" }
 ```
 
 An unknown task returns `404 Not Found`:
 
 ```json
-{"error":"Task 99 not found"}
+{ "error": "Task 99 not found" }
 ```
 
 A successful delete returns `204 No Content` with an empty body.
@@ -154,9 +154,7 @@ docker run --rm -p 3000:3000 tiny-go-task-api
 
 After starting the server, open `http://localhost:3000/docs` and use **Try it out** to complete a create → read → update → delete cycle.
 
-> Submission step: capture the working `/docs` page on your machine and save it as `docs/swagger-ui.png`, then add the image below.
-
-<!-- Replace this comment with: ![Swagger UI showing the Task API endpoints](docs/swagger-ui.png) -->
+![Swagger UI showing the Task API endpoints](docs/swagger-ui.png)
 
 ## Why data disappears after restart
 
@@ -176,5 +174,5 @@ The repository intentionally stores tasks in memory rather than in a database. W
 ├── main.go                # Server startup
 ├── Dockerfile
 ├── Makefile
-└── notes.md   
+└── notes.md
 ```
