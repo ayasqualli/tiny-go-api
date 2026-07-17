@@ -75,12 +75,18 @@ func (s *TaskStore) Get(id int) (Task, bool) {
 }
 
 func (s *TaskStore) Create(title string) Task {
-	s.mu.RLock()
+	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	task := Task{ID: s.nextID, Title: title, Done: false}
+	task := Task{
+		ID:    s.nextID,
+		Title: title,
+		Done:  false,
+	}
+
 	s.nextID++
 	s.tasks = append(s.tasks, task)
+
 	return task
 }
 
